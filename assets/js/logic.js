@@ -1,25 +1,60 @@
-function startQuiz(){
-  
-var time = setInterval(function (){
-  var timeDisplay = document.getElementById("time")
-  timeDisplay.innerText = time  
-  time ++
-}, 1000)
+var timeDisplay = document.getElementById("time")
+let highScoreData = []
 
-var startScreen = document.getElementById("start-screen")
-console.log(startScreen)
-startScreen.classList.add("hide")
+if (!localStorage.getItem("highScoreDataLocal")){
 
-var  questionScren = document.getElementById("questions")
-questionScren.classList.remove("hide")
-questionScren.classList.add("start")
-showQuestion(0)
 }
+
+if (!localStorage.getItem("questionNumber")){
+  questionNumber = 0
+  localStorage.setItem("questionNumber", questionNumber)
+  console.log("New question number created")
+}
+
+/* If saved state is already beyond the final question */
+if (localStorage.getItem("questionNumber") >= questions.length){
+  questionNumber = 0
+  localStorage.setItem("questionNumber", questionNumber)
+
+}
+
+var questionNumber = localStorage.getItem("questionNumber")
+
+if (!localStorage.getItem("saveTime")){
+  var savedTime = questions.length*30
+  saveTime()
+} 
+else {
+  var savedTime = localStorage.getItem("savedTime")
+}
+
+function startQuiz(){
+
+  questionNumber = localStorage.getItem("questionNumber")
+
+
+  timeCounter = setInterval(function (){
+    timeDisplay.innerText = savedTime  
+    savedTime --
+    saveTime()
+  }, 1000)
+
+  var startScreen = document.getElementById("start-screen")
+  console.log(startScreen)
+  startScreen.classList.add("hide")
+
+  var  questionScren = document.getElementById("questions")
+  questionScren.classList.remove("hide")
+  questionScren.classList.add("start")
+  showQuestion(questionNumber)
+  }
 
 function showQuestion(index){
   var questionTitle = document.getElementById("question-title")
-  questionTitle.innerText = questions.questions[index]
+  questionTitle.innerText = questions[index].question
   var choices = document.getElementById("choices")
+  document.getElementById("choices").innerHTML = ""
+
   var c1 = document.createElement("BUTTON");
   var c2 = document.createElement("BUTTON");
   var c3 = document.createElement("BUTTON");
@@ -30,26 +65,136 @@ function showQuestion(index){
   choices.appendChild(c3)
   choices.appendChild(c4)
 
-  c1.innerText = questions.answer1
-  c2.innerText = questions.answer2
-  c3.innerText = questions.answer3
-  c4.innerText = questions.answer4
-
-  
-
+  c1.innerText = questions[index].answers[0]
+  c2.innerText = questions[index].answers[1]
+  c3.innerText = questions[index].answers[2]
+  c4.innerText = questions[index].answers[3]
 
 }
 
-/* function quizLogic(){
-  for (var index = 0; index<questions.questions.length; index++){
-    while (true){
-      console.log(index)
-      showQuestion(index)
-    }
+if (savedTime<0){
+  clearInterval(timeCounter)
+  console.log("You ran out of time.")
+}
 
+function saveTime (){
+  localStorage.setItem("savedTime", savedTime)
+}
+
+function saveQuestionNumber (){
+  localStorage.setItem("questionNumber", questionNumber)
+}
+
+function saveScore() {
+  /* Prompts for the user to enter their name */
+  var username = prompt("Please enter your name")
+  
+  /* Creates highScoreData variable, turns it into JSON format and saves it to local storage. */
+
+  var currentHighScore = {
+    username: username,
+    currentTime: new Date(),
+    score: savedTime
   }
 
-} */
+  console.log(currentHighScore)
+
+  /* Reads in previous highScoreData so it can later append it. */
+  if (localStorage.getItem("highScoreDataLocal") != null){
+  highScoreData = JSON.parse(localStorage.getItem("highScoreDataLocal"))
+  }
+
+  else{
+    var highScoreData = []
+  }
+
+  highScoreData.push(currentHighScore)
+
+  localStorage.setItem("highScoreDataLocal", JSON.stringify(highScoreData))
+
+  questionNumber = 0
+  saveQuestionNumber()
+  savedTime = null
+
+  var startScreen = document.getElementById("start-screen")
+  console.log(startScreen)
+  startScreen.classList.add("start")
+  startScreen.classList.remove("hide")
+
+  var  questionScren = document.getElementById("questions")
+  questionScren.classList.add("hide")
+
+}
+
+function resetQuiz() {
+  questionNumber = 0
+  saveQuestionNumber()
+  savedTime = null
+
+  var startScreen = document.getElementById("start-screen")
+  console.log(startScreen)
+  startScreen.classList.add("start")
+  startScreen.classList.remove("hide")
+
+  var  questionScren = document.getElementById("questions")
+  questionScren.classList.add("hide")
+}
+
 
 document.getElementById("start").addEventListener("click", startQuiz);
+
+choices.addEventListener('click', (event) => {
+  const isButton = event.target.nodeName === 'BUTTON';
+  if (!isButton) {
+    return;
+  }
+  console.log(event.target.innerText);
+  if (event.target.innerText === questions[questionNumber].correctAnswer){
+    console.log("Correct answer chosen.")
+    questionNumber ++
+    localStorage.setItem("questionNumber", questionNumber)
+    if (questionNumber>= questions.length){
+      console.log("Well done you have finished the game!")
+      
+      clearInterval(timeCounter) /* Stops timer */
+      timeDisplay.innerText = savedTime  /* To show actual final time. */
+
+    /* Show end quiz text */
+    var questionsArea = document.getElementById("questions")
+    questionsArea.innerHTML = ""
+    var h1 = document.createElement('H1')
+    h1.innerText = `Well done, you have completed the quiz with ${savedTime}s to spare.`
+    questionsArea.appendChild(h1)
+    var h1 = document.createElement('H1')
+    h1.innerText = `Would you like to save your score?`
+    questionsArea.appendChild(h1)
+    var saveButton = document.createElement("button")
+    saveButton.innerText = "Why, yes I would indeed!"
+    saveButton.setAttribute("id", "saveButton")
+    questionsArea.appendChild(saveButton)
+    var noSaveButton = document.createElement("button")
+    noSaveButton.innerText = "No thanks, I am ashamed of it."
+    noSaveButton.setAttribute("id", "noSaveButton")
+    questionsArea.appendChild(noSaveButton)
+    
+    document.getElementById("saveButton").addEventListener("click", saveScore)
+    document.getElementById("noSaveButton").addEventListener("click", resetQuiz)
+
+    }
+    else{
+      showQuestion(questionNumber)
+    }
+    
+  }
+  else{
+    console.log("You have chosen the wrong answer. Now face the consequences.")
+    savedTime = savedTime -20
+    timeDisplay.innerText = savedTime  
+    
+  }
+
+})
+
+
+
 
