@@ -1,1 +1,3 @@
 # Code-Quiz
+
+Unfortuantely did not have time to finish...

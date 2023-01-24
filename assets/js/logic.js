@@ -31,6 +31,7 @@ else {
 function startQuiz(){
 
   questionNumber = localStorage.getItem("questionNumber")
+  console.log(`question number: ${questionNumber}`)
 
 
   timeCounter = setInterval(function (){
@@ -50,7 +51,9 @@ function startQuiz(){
   }
 
 function showQuestion(index){
+  console.log(index)
   var questionTitle = document.getElementById("question-title")
+  console.log(questions[index].question)
   questionTitle.innerText = questions[index].question
   var choices = document.getElementById("choices")
   document.getElementById("choices").innerHTML = ""
@@ -100,12 +103,12 @@ function saveScore() {
   console.log(currentHighScore)
 
   /* Reads in previous highScoreData so it can later append it. */
-  if (localStorage.getItem("highScoreDataLocal") != null){
-  highScoreData = JSON.parse(localStorage.getItem("highScoreDataLocal"))
+  if (!localStorage.getItem("highScoreDataLocal")){
+    var highScoreData = []
   }
 
   else{
-    var highScoreData = []
+    highScoreData = JSON.parse(localStorage.getItem("highScoreDataLocal"))
   }
 
   highScoreData.push(currentHighScore)
@@ -123,6 +126,7 @@ function saveScore() {
 
   var  questionScren = document.getElementById("questions")
   questionScren.classList.add("hide")
+
 
 }
 
@@ -160,8 +164,9 @@ choices.addEventListener('click', (event) => {
       timeDisplay.innerText = savedTime  /* To show actual final time. */
 
     /* Show end quiz text */
+    document.getElementById("question-title").innerHTML = ""
+    document.getElementById("choices").innerHTML = ""
     var questionsArea = document.getElementById("questions")
-    questionsArea.innerHTML = ""
     var h1 = document.createElement('H1')
     h1.innerText = `Well done, you have completed the quiz with ${savedTime}s to spare.`
     questionsArea.appendChild(h1)
